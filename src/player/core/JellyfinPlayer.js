@@ -4223,14 +4223,20 @@ export class JellyfinPlayer extends EventEmitter {
         return tracks.filter((track) => {
             const codec = (track.Codec || '').toLowerCase();
 
-            // Omit Dolby TrueHD if passthrough/decoding is disabled or unsupported by hardware
-            if (codec === 'truehd' && !isTrueHdSupported()) {
-                return false;
-            }
+            if (this._backendType === 'webos') {
+                // The TV builds its native list itself: TrueHD is always left out and DTS is
+                // always kept, whatever the TrueHD/DTS settings say. Must match WebOSPlayer.
+                if (codec === 'truehd' || codec === 'mlp') return false;
+            } else {
+                // Omit Dolby TrueHD if passthrough/decoding is disabled or unsupported by hardware
+                if (codec === 'truehd' && !isTrueHdSupported()) {
+                    return false;
+                }
 
-            // Omit DTS / DTS-HD / DCA streams if passthrough/decoding is disabled or unsupported
-            if ((codec.includes('dts') || codec === 'dca') && !isDtsSupported()) {
-                return false;
+                // Omit DTS / DTS-HD / DCA streams if passthrough/decoding is disabled or unsupported
+                if ((codec.includes('dts') || codec === 'dca') && !isDtsSupported()) {
+                    return false;
+                }
             }
 
             // Omit FLAC / ALAC in video containers if enableFlacInVideo setting is disabled.

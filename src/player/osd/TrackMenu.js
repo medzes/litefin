@@ -202,17 +202,19 @@ export default class TrackMenu extends BaseMenu {
                     ? !player.isAudioTrackNativelyPlayable(track)
                     : false;
 
-                // webOS: a forced TrueHD or DTS track is passed through to the soundbar/AVR directly,
+                // webOS: a forced DTS track is passed through to the soundbar/AVR directly,
                 // so it operates in direct play rather than requiring a transcode.
                 // Clear the unsupported state so button styling remains standard and attach PASSTHROUGH badge.
                 const codec = (track.Codec || '').toLowerCase();
                 const isTrueHd = codec === 'truehd' || codec === 'mlp';
                 const isDts = codec.includes('dts') || codec === 'dca';
                 const onWebOS = Boolean(platformInfo?.isWebOS);
-                const isWebOSPassthrough = onWebOS && (
-                    (isTrueHd && PlayerSettings.get('enableTrueHd') === 'enable') ||
-                    (isDts && PlayerSettings.get('enableDts') === 'enable')
-                );
+                // On webOS the TV's native track list never contains TrueHD, so a TrueHD track
+                // cannot be switched to natively, whatever the TrueHD setting says. Grey it out.
+                if (onWebOS && isTrueHd) {
+                    isUnsupported = true;
+                }
+                const isWebOSPassthrough = onWebOS && isDts && PlayerSettings.get('enableDts') === 'enable';
 
                 if (isWebOSPassthrough) {
                     isUnsupported = false;

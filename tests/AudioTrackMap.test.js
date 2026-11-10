@@ -68,3 +68,27 @@ test('default-first: unknown target or empty input returns null', () => {
     assert.equal(mapDefaultFirstAudioIndex([], 0, 1), null);
     assert.equal(mapDefaultFirstAudioIndex(undefined, 0, 1), null);
 });
+
+test('native order: a TrueHD track anywhere in the file is left out of the TV list', () => {
+    const streams = [
+        { Index: 1, Codec: 'dts', IsDefault: false },
+        { Index: 2, Codec: 'truehd', IsDefault: false },
+        { Index: 3, Codec: 'aac', IsDefault: true },
+        { Index: 4, Codec: 'ac3', IsDefault: false }
+    ];
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 3), 0, 'default AAC first');
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 1), 1, 'DTS after AAC');
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 4), 2, 'AC-3 last');
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 2), -1, 'TrueHD not natively selectable');
+});
+
+test('native order: applies with no TrueHD in the list, so the default still moves to the front', () => {
+    const streams = [
+        { Index: 1, Codec: 'dts', IsDefault: false },
+        { Index: 2, Codec: 'aac', IsDefault: true },
+        { Index: 3, Codec: 'ac3', IsDefault: false }
+    ];
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 2), 0);
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 1), 1);
+    assert.equal(mapDefaultFirstAudioIndex(streams, 3, 3), 2);
+});
