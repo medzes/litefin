@@ -3042,8 +3042,9 @@ export class WebOSPlayer {
         const jellyfinAudioStreams = mediaStreams.filter(s => {
             if (s.Type !== 'Audio') return false;
             const codec = (s.Codec || '').toLowerCase();
-            if (codec === 'truehd' && !isTrueHdSupported()) return false;
-            if ((codec.includes('dts') || codec === 'dca') && !isDtsSupported()) return false;
+            // The TV builds this list itself, so it does not depend on the TrueHD/DTS settings:
+            // TrueHD is always left out, DTS is always kept.
+            if (codec === 'truehd' || codec === 'mlp') return false;
             if (codec === 'alac' && !PlayerSettings.get('enableFlacInVideo')) return false;
             return true;
         });
